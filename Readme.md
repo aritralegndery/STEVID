@@ -1,6 +1,7 @@
 # Cloud Storage
 
 This application allows you to encode and decode files using audio conversion.
+If You use this code in your Project or any Video make sure to give my credit as my respitory link.
 
 ## Usage
 
@@ -9,19 +10,25 @@ This application allows you to encode and decode files using audio conversion.
 
 ## Features
 
-- Encoding and decoding files using audio conversion.
+- Encoding and decoding files using audio/image conversion.
 - Progress bar to track the progress of encoding and decoding processes.
 - Use at your own risk.
+- Also You can rosat me for my **Mistakes**.I am Here To Fix Them!(I am Still A **HIGH SCHOOL KID** Learning Python.
 
 ## Requirements
 
-- Python 3.x
+- Python 3.10
 - PyQt5
 - tqdm
+- Pillow
+- Opencv
 
 ## How to Run
 
 1. Install the required Python packages:
 
 ```bash
-pip install PyQt5 tqdm 
+pip install PyQt5 tqdm pillow opencv-python
+```
+**Video Feature coming Soon!!**
+From :bangladesh::smiling_face_with_three_hearts::smiling_face_with_three_hearts:
