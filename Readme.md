@@ -12,7 +12,7 @@ If You use this code in your Project or any Video make sure to give my credit as
 
 - Encoding and decoding files using audio/image conversion.
 - Progress bar to track the progress of encoding and decoding processes.
-- Use at your own risk.
+- It requires high usage of **RAM**.
 - Also You can rosat me for my **Mistakes**.
 
 ## Requirements
