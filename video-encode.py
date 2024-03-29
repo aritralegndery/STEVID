@@ -23,28 +23,7 @@ HD = (1920, 1080)
 import cv2
 import os
 
-def make_video(parent_folder, fname):
-    items = os.listdir(parent_folder)
-    png_filenames = [elem for elem in items if elem.endswith('.png')]
 
-    sorted_png = sorted(png_filenames, key=lambda x: int(x.split("-")[1].split(".")[0]))
-
-    # Determine the frame size from the first image
-    first_img = cv2.imread(os.path.join(parent_folder, sorted_png[0]))
-    frame_size = (first_img.shape[1], first_img.shape[0])
-
-    # Create video writer object
-    video_writer = cv2.VideoWriter(fname + ".mp4", cv2.VideoWriter_fourcc(*'mp4v'), 10, frame_size)
-
-    # Write each frame to the video
-    for filename in tqdm(sorted_png, desc="Creating Video"):
-        image = cv2.imread(os.path.join(parent_folder, filename))
-        video_writer.write(image)
-
-    # Release video writer
-    video_writer.release()
-
-    return fname + ".mp4"
 
 # writes a gif in parent_folder made up of all its sorted .png files
 def make_gif(parent_folder, fname):
@@ -78,12 +57,11 @@ def make_gif(parent_folder, fname):
 
 # provided a list of pixels, writes it out as an image
 # with the specified resolution
-def pixels_2_png(pixels, fname, reso=four_k):
+def pixels_2_png(pixels, fname, reso=(3840, 2160)):
     img = Image.new('RGB', reso)
-    img.putdata(pixels)
+    img.putdata(list(tqdm(pixels, desc="Processing pixels", total=len(pixels))))
     img.save(fname)
-    # print pixels[:16]
-    print("pixels_2_png: Saved to %d pixels to %s" % (len(pixels), fname))
+    print("pixels_2_png: Saved %d pixels to %s" % (len(pixels), fname))
 
 
 # provided a filename, reads the png and returns a list of pixels
@@ -92,11 +70,11 @@ def png_2_pixels(fname):
     pixel_list = []
     pixels = im.load()
     width, height = im.size
-    for row in range(height):
+    total_pixels = width * height
+    for row in tqdm(range(height), desc="Reading pixels", total=height):
         for col in range(width):
             pixel_list.append(pixels[col, row])
     print("png_2_pixels: Read %d pixels from %s" % (len(pixel_list), fname))
-    # pixels_2_png(pixel_list,"test2.png")
     return pixel_list
 
 
@@ -105,28 +83,32 @@ def bits_2_file(bits, fname):
     with open(fname, 'wb') as f:
         idx = 0
         inc = 8
-        while True:
-            char = ''.join(bits[idx:idx + inc])
-            f.write(bytes([int(char, 2)]))
-            idx += inc
-            if idx >= len(bits):
-                break
-    print("bits_2_file: Wrote %d bits to %s" % (len(bits), fname))
+        total_bits = len(bits)
+        with tqdm(total=total_bits, desc="Writing Bits to File", unit="bit") as pbar:
+            while True:
+                char = ''.join(bits[idx:idx + inc])
+                f.write(bytes([int(char, 2)]))
+                idx += inc
+                pbar.update(inc)
+                if idx >= total_bits:
+                    break
+    print("bits_2_file: Wrote %d bits to %s" % (total_bits, fname))
 
-
-# returns a list of bits in the file
 def file_2_bits(fname):
     bits = []
     try:
         with open(fname, "rb") as f:
-            byte = f.read(1)
-            while byte:
-                cur_bits = bin(ord(byte))[2:]
-                while len(cur_bits) < 8:
-                    cur_bits = "0" + cur_bits
-                for b in cur_bits:
-                    bits.append(b)
+            total_bytes = os.path.getsize(fname)
+            with tqdm(total=total_bytes, desc="Converting File to Bits", unit="byte") as pbar:
                 byte = f.read(1)
+                while byte:
+                    cur_bits = bin(ord(byte))[2:]
+                    while len(cur_bits) < 8:
+                        cur_bits = "0" + cur_bits
+                    for b in cur_bits:
+                        bits.append(b)
+                    byte = f.read(1)
+                    pbar.update(1)
     except FileNotFoundError:
         print("Error: File '{}' not found.".format(fname))
     except PermissionError:
@@ -138,25 +120,31 @@ def file_2_bits(fname):
     return bits
 
 
-
 # converts a list of 0/1 bits to pixels
+
 def bits_2_pixels(bits):
     pixels = []
 
-    for b in bits:
-        pixels.append((0, 0, 0) if b == '0' else (255, 255, 255))
+    with tqdm(total=len(bits), desc="Converting Bits to Pixels", unit="bit") as pbar:
+        for b in bits:
+            pixels.append((0, 0, 0) if b == '0' else (255, 255, 255))
+            pbar.update(1)
+
     print("bits_2_pixels: Converted %d bits to %d pixels" % (len(bits), len(pixels)))
     return pixels
 
 
-# converts opposite of bits_2_pixels
 def pixels_2_bits(pixels):
     bits = []
-    for p in pixels:
-        if p == (0, 0, 0):
-            bits.append('0')
-        else:
-            bits.append('1')
+
+    with tqdm(total=len(pixels), desc="Converting Pixels to Bits", unit="pixel") as pbar:
+        for p in pixels:
+            if p == (0, 0, 0):
+                bits.append('0')
+            else:
+                bits.append('1')
+            pbar.update(1)
+
     print("pixels_2_bits: Converted %d pixels to %d bits" % (len(pixels), len(bits)))
     return bits
 
@@ -363,11 +351,11 @@ def conversion_test():
 
 
 def main():
-    encode("Download.zip")
+    #encode("input.zip")
     
-    video_name = make_video("temp", "output")
-    clear_folder("temp")
-    #decode(video_name)
+    
+    #clear_folder("temp")
+    decode('output_gif.zip.gif')
 
     #conversion_test()
 
